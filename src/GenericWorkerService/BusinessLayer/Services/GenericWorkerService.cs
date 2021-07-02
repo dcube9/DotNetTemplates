@@ -11,16 +11,15 @@ namespace GenericWorkerService.BusinessLayer.Services
     public class GenericWorkerService : BackgroundService
     {
         private readonly ILogger<GenericWorkerService> logger;
-        private readonly IServiceScopeFactory serviceScopeFactory;
+        private readonly IServiceProvider serviceProvider;
         private readonly GenericWorkerSetting genericWorkerSetting;
 
-
         public GenericWorkerService(ILogger<GenericWorkerService> logger,
-                             IServiceScopeFactory serviceScopeFactory,
+                             IServiceProvider serviceProvider,
                              GenericWorkerSetting genericWorkerSetting)
         {
             this.logger = logger;
-            this.serviceScopeFactory = serviceScopeFactory;
+            this.serviceProvider = serviceProvider;
             this.genericWorkerSetting = genericWorkerSetting;
         }
 
@@ -44,34 +43,43 @@ namespace GenericWorkerService.BusinessLayer.Services
 
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            try
+            var shouldRunning = true;
+
+            while (shouldRunning && !cancellationToken.IsCancellationRequested)
             {
-                logger.LogInformation("{worker} initial delay of {WaitBeforeStart} seconds.", nameof(GenericWorkerService), genericWorkerSetting.WaitBeforeStart / 1000);
-                await Task.Delay(genericWorkerSetting.WaitBeforeStart, cancellationToken);
-
-                logger.LogInformation("{worker} is running with polling every {PollingFrequency} seconds.", nameof(GenericWorkerService), genericWorkerSetting.PollingFrequency / 1000);
-
-                while (!cancellationToken.IsCancellationRequested)
+                try
                 {
-                    using (IServiceScope scope = serviceScopeFactory.CreateScope())
-                    using (IHarvestService harvestService = scope.ServiceProvider.GetRequiredService<IHarvestService>())
+                    logger.LogInformation("{worker} initial delay of {WaitBeforeStart} seconds.", nameof(GenericWorkerService), genericWorkerSetting.WaitBeforeStart / 1000);
+                    await Task.Delay(genericWorkerSetting.WaitBeforeStart, cancellationToken);
+
+                    logger.LogInformation("{worker} is running with polling every {PollingFrequency} seconds.", nameof(GenericWorkerService), genericWorkerSetting.PollingFrequency / 1000);
+
+                    using var scope = serviceProvider.CreateScope();
+
+                    var harvestService = scope.ServiceProvider.GetRequiredService<IHarvestService>();
+                    await harvestService.HarvestAsync(cancellationToken);
+
+                    //await Task.Delay(genericWorkerSetting.PollingFrequency, cancellationToken);
+                }
+                catch (Exception e)
+                {
+                    if (e is not TaskCanceledException)
                     {
-                        await harvestService.HarvestAsync(cancellationToken);
+                        logger.LogError(e, "{worker} error in ExecuteAsync", nameof(GenericWorkerService));
                     }
-
-                    await Task.Delay(genericWorkerSetting.PollingFrequency, cancellationToken);
                 }
-            }
-            catch (Exception e)
-            {
-                if (e is not TaskCanceledException)
+                finally
                 {
-                    logger.LogError(e, "{worker} error in ExecuteAsync", nameof(GenericWorkerService));
+                    logger.LogInformation("{worker} is stopping.", nameof(GenericWorkerService));
+
+                    try
+                    {
+                        await Task.Delay(genericWorkerSetting.PollingFrequency, cancellationToken);
+                    }
+                    catch
+                    {
+                    }
                 }
-            }
-            finally
-            {
-                logger.LogInformation("{worker} is stopping.", nameof(GenericWorkerService));
             }
         }
     }
