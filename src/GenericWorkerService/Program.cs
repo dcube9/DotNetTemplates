@@ -16,7 +16,7 @@ namespace GenericWorkerService
 
             try
             {
-                IHost host = CreateHostBuilder(args).Build();
+                var host = CreateHostBuilder(args).Build();
 
                 Log.Information("{AppName} :: Start", AppName);
 
@@ -42,14 +42,14 @@ namespace GenericWorkerService
                 {
                     configurationBuilder.AddJsonFile("appsettings.local.json", optional: true);
                 })
+                .UseSerilog((context, services, loggerConfiguration) =>
+                {
+                    loggerConfiguration.ReadFrom.Configuration(context.Configuration);
+                })
                 .ConfigureServices((hostContext, services) =>
                 {
                     Startup startup = new(hostContext.Configuration);
                     startup.ConfigureServices(services);
-                })
-                .UseSerilog((context, services, loggerConfiguration) =>
-                {
-                    loggerConfiguration.ReadFrom.Configuration(context.Configuration);
                 });
         }
     }

@@ -10,9 +10,9 @@ namespace GenericWorkerService.InfrastructureLayer.Helpers
         {
             get
             {
-                string location = Assembly.GetExecutingAssembly().Location;
+                var location = Assembly.GetExecutingAssembly().Location;
                 UriBuilder uri = new(location);
-                string path = Uri.UnescapeDataString(uri.Path);
+                var path = Uri.UnescapeDataString(uri.Path);
                 return Path.GetDirectoryName(path);
             }
         }

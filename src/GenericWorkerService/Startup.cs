@@ -16,7 +16,7 @@ namespace GenericWorkerService
 
         public void ConfigureServices(IServiceCollection services)
         {
-            AppSettings appSettingSection = Configure<AppSettings>(nameof(AppSettings));
+            var appSettingSection = Configure<AppSettings>(nameof(AppSettings));
 
             services.AddGenericWorkerServices(
                 options =>
@@ -26,17 +26,14 @@ namespace GenericWorkerService
                     options.WaitBeforeStart = appSettingSection.GenericWorkerWaitBeforeStart;
                 });
 
-            services.AddHostedService<BusinessLayer.Services.GenericWorkerService>();
-
             T Configure<T>(string sectionName) where T : class
             {
-                IConfigurationSection section = Configuration.GetSection(sectionName);
-                T settings = section.Get<T>();
+                var section = Configuration.GetSection(sectionName);
+                var settings = section.Get<T>();
                 services.Configure<T>(section);
 
                 return settings;
             }
         }
     }
-
 }

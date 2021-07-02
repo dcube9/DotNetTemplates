@@ -12,8 +12,10 @@ namespace GenericWorkerService.BusinessLayer.Extentions
             GenericWorkerSetting settings = new();
             configure?.Invoke(settings);
             services.AddSingleton(settings);
-            //
+
             services.AddScoped<IHarvestService, HarvestService>();
+            services.AddHostedService<BusinessLayer.Services.GenericWorkerService>();
+
             return services;
         }
     }

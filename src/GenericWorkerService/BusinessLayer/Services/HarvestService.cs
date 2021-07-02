@@ -16,9 +16,7 @@ namespace GenericWorkerService.BusinessLayer.Services
             this.logger = logger;
             this.genericWorkerSetting = genericWorkerSetting;
         }
-        public void Dispose()
-        {
-        }
+
         public async Task HarvestAsync(CancellationToken stoppingToken)
         {
             logger.LogInformation("{worker} Start Harvest at: {time}", nameof(HarvestService), DateTimeOffset.Now);
@@ -26,6 +24,11 @@ namespace GenericWorkerService.BusinessLayer.Services
             await Task.Delay(1000, stoppingToken);
 
             logger.LogInformation("{worker} End Harvest at: {time}", nameof(HarvestService), DateTimeOffset.Now);
+        }
+
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
         }
     }
 }
