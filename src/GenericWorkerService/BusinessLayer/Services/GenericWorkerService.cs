@@ -12,11 +12,11 @@ namespace GenericWorkerService.BusinessLayer.Services
     {
         private readonly ILogger<GenericWorkerService> logger;
         private readonly IServiceProvider serviceProvider;
-        private readonly GenericWorkerSetting genericWorkerSetting;
+        private readonly GenericWorkerSettings genericWorkerSetting;
 
         public GenericWorkerService(ILogger<GenericWorkerService> logger,
                              IServiceProvider serviceProvider,
-                             GenericWorkerSetting genericWorkerSetting)
+                             GenericWorkerSettings genericWorkerSetting)
         {
             this.logger = logger;
             this.serviceProvider = serviceProvider;
@@ -43,43 +43,101 @@ namespace GenericWorkerService.BusinessLayer.Services
 
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            var shouldRunning = true;
+            await ExecuteAndExitOnExceptionAsync(cancellationToken);
+        }
 
-            while (shouldRunning && !cancellationToken.IsCancellationRequested)
+        //protected async Task ExecuteTillCancellationAsync(CancellationToken cancellationToken)
+        //{
+        //    var shouldRunning = true;
+
+        //    try
+        //    {
+        //        await WaitBeforeStartAsync(cancellationToken);
+
+        //        logger.LogInformation("{worker} is running with polling every {PollingFrequency} seconds.", nameof(GenericWorkerService),
+        //            genericWorkerSetting.PollingFrequency / 1000);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        if (e is not TaskCanceledException)
+        //        {
+        //            logger.LogError(e, "{worker} error in ExecuteAsync", nameof(GenericWorkerService));
+        //        }
+
+        //        logger.LogInformation("{worker} is stopping.", nameof(GenericWorkerService));
+        //        return;
+        //    }
+
+        //    while (shouldRunning && !cancellationToken.IsCancellationRequested)
+        //    {
+        //        try
+        //        {
+        //            using var scope = serviceProvider.CreateScope();
+        //            var harvestService = scope.ServiceProvider.GetRequiredService<IHarvestService>();
+
+        //            await harvestService.HarvestAsync(cancellationToken);
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            if (e is not TaskCanceledException)
+        //            {
+        //                logger.LogError(e, "{worker} error in ExecuteAsync", nameof(GenericWorkerService));
+        //            }
+        //        }
+        //        finally
+        //        {
+        //            logger.LogInformation("{worker} is stopping.", nameof(GenericWorkerService));
+
+        //            try
+        //            {
+        //                await Task.Delay(genericWorkerSetting.PollingFrequency, cancellationToken);
+        //            }
+        //            catch
+        //            {
+        //                // ignored
+        //            }
+        //        }
+        //    }
+        //}
+
+        protected async Task ExecuteAndExitOnExceptionAsync(CancellationToken cancellationToken)
+        {
+            try
             {
-                try
+                await WaitBeforeStartAsync(cancellationToken);
+
+                logger.LogInformation("{worker} is running with polling every {PollingFrequency} seconds.", nameof(GenericWorkerService),
+                    genericWorkerSetting.PollingFrequency / 1000);
+
+                while (!cancellationToken.IsCancellationRequested)
                 {
-                    logger.LogInformation("{worker} initial delay of {WaitBeforeStart} seconds.", nameof(GenericWorkerService), genericWorkerSetting.WaitBeforeStart / 1000);
-                    await Task.Delay(genericWorkerSetting.WaitBeforeStart, cancellationToken);
-
-                    logger.LogInformation("{worker} is running with polling every {PollingFrequency} seconds.", nameof(GenericWorkerService), genericWorkerSetting.PollingFrequency / 1000);
-
                     using var scope = serviceProvider.CreateScope();
-
                     var harvestService = scope.ServiceProvider.GetRequiredService<IHarvestService>();
+
                     await harvestService.HarvestAsync(cancellationToken);
-
-                    //await Task.Delay(genericWorkerSetting.PollingFrequency, cancellationToken);
+                    await Task.Delay(genericWorkerSetting.PollingFrequency, cancellationToken);
                 }
-                catch (Exception e)
+            }
+            catch (Exception e)
+            {
+                if (e is not TaskCanceledException)
                 {
-                    if (e is not TaskCanceledException)
-                    {
-                        logger.LogError(e, "{worker} error in ExecuteAsync", nameof(GenericWorkerService));
-                    }
+                    logger.LogError(e, "{worker} error in ExecuteAsync", nameof(GenericWorkerService));
                 }
-                finally
-                {
-                    logger.LogInformation("{worker} is stopping.", nameof(GenericWorkerService));
+            }
+            finally
+            {
+                logger.LogInformation("{worker} is stopping.", nameof(GenericWorkerService));
+            }
+        }
 
-                    try
-                    {
-                        await Task.Delay(genericWorkerSetting.PollingFrequency, cancellationToken);
-                    }
-                    catch
-                    {
-                    }
-                }
+        private async Task WaitBeforeStartAsync(CancellationToken cancellationToken)
+        {
+            if (genericWorkerSetting.WaitBeforeStart > 0)
+            {
+                logger.LogInformation("{worker} initial delay of {WaitBeforeStart} seconds.", nameof(GenericWorkerService),
+                    genericWorkerSetting.WaitBeforeStart / 1000);
+                await Task.Delay(genericWorkerSetting.WaitBeforeStart, cancellationToken);
             }
         }
     }

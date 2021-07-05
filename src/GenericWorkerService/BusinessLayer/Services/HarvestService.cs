@@ -9,9 +9,9 @@ namespace GenericWorkerService.BusinessLayer.Services
     public class HarvestService : IHarvestService
     {
         private readonly ILogger<HarvestService> logger;
-        private readonly GenericWorkerSetting genericWorkerSetting;
+        private readonly GenericWorkerSettings genericWorkerSetting;
 
-        public HarvestService(ILogger<HarvestService> logger, GenericWorkerSetting genericWorkerSetting)
+        public HarvestService(ILogger<HarvestService> logger, GenericWorkerSettings genericWorkerSetting)
         {
             this.logger = logger;
             this.genericWorkerSetting = genericWorkerSetting;

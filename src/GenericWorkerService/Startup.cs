@@ -1,4 +1,5 @@
 ﻿using GenericWorkerService.BusinessLayer.Extentions;
+using GenericWorkerService.BusinessLayer.Settings;
 using GenericWorkerService.InfrastructureLayer.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,14 +17,12 @@ namespace GenericWorkerService
 
         public void ConfigureServices(IServiceCollection services)
         {
-            var appSettingSection = Configure<AppSettings>(nameof(AppSettings));
+            var settings = Configure<AppSettings>(nameof(AppSettings));
 
             services.AddGenericWorkerServices(
-                options =>
+                (ref GenericWorkerSettings options) =>
                 {
-                    options.IsEnable = appSettingSection.GenericWorkerIsEnable;
-                    options.PollingFrequency = appSettingSection.GenericWorkerPollingFrequency;
-                    options.WaitBeforeStart = appSettingSection.GenericWorkerWaitBeforeStart;
+                    options = settings.GenericWorker.Clone() as GenericWorkerSettings;
                 });
 
             T Configure<T>(string sectionName) where T : class
