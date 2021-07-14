@@ -2,7 +2,7 @@
 
 namespace GenericWorkerService.BusinessLayer.Settings
 {
-    public class GenericWorkerSettings : ICloneable
+    public class MainServiceSettings : ICloneable
     {
         public bool IsEnable { get; set; } = true;
 

@@ -8,15 +8,15 @@ using Microsoft.Extensions.Logging;
 
 namespace GenericWorkerService.BusinessLayer.Services
 {
-    public class GenericWorkerService : BackgroundService
+    public class MainService : BackgroundService
     {
-        private readonly ILogger<GenericWorkerService> logger;
+        private readonly ILogger<MainService> logger;
         private readonly IServiceProvider serviceProvider;
-        private readonly GenericWorkerSettings genericWorkerSetting;
+        private readonly MainServiceSettings genericWorkerSetting;
 
-        public GenericWorkerService(ILogger<GenericWorkerService> logger,
+        public MainService(ILogger<MainService> logger,
                              IServiceProvider serviceProvider,
-                             GenericWorkerSettings genericWorkerSetting)
+                             MainServiceSettings genericWorkerSetting)
         {
             this.logger = logger;
             this.serviceProvider = serviceProvider;
@@ -27,18 +27,18 @@ namespace GenericWorkerService.BusinessLayer.Services
         {
             if (!genericWorkerSetting.IsEnable)
             {
-                logger.LogInformation("{worker} is disable.", nameof(GenericWorkerService));
+                logger.LogInformation("{worker} is disable.", nameof(MainService));
                 return;
             }
 
-            logger.LogInformation("{worker} starts.", nameof(GenericWorkerService));
+            logger.LogInformation("{worker} starts.", nameof(MainService));
             await base.StartAsync(cancellationToken);
         }
 
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
             await base.StopAsync(cancellationToken);
-            logger.LogInformation("{worker} is stopped.", nameof(GenericWorkerService));
+            logger.LogInformation("{worker} is stopped.", nameof(MainService));
         }
 
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
@@ -54,7 +54,7 @@ namespace GenericWorkerService.BusinessLayer.Services
         //    {
         //        await WaitBeforeStartAsync(cancellationToken);
 
-        //        logger.LogInformation("{worker} is running with polling every {PollingFrequency} seconds.", nameof(GenericWorkerService),
+        //        logger.LogInformation("{worker} is running with polling every {PollingFrequency} seconds.", nameof(MainService),
         //            genericWorkerSetting.PollingFrequency / 1000);
         //    }
         //    catch (Exception e)
@@ -106,7 +106,7 @@ namespace GenericWorkerService.BusinessLayer.Services
             {
                 await WaitBeforeStartAsync(cancellationToken);
 
-                logger.LogInformation("{worker} is running with polling every {PollingFrequency} seconds.", nameof(GenericWorkerService),
+                logger.LogInformation("{worker} is running with polling every {PollingFrequency} seconds.", nameof(MainService),
                     genericWorkerSetting.PollingFrequency / 1000);
 
                 while (!cancellationToken.IsCancellationRequested)
@@ -122,12 +122,12 @@ namespace GenericWorkerService.BusinessLayer.Services
             {
                 if (e is not TaskCanceledException)
                 {
-                    logger.LogError(e, "{worker} error in ExecuteAsync", nameof(GenericWorkerService));
+                    logger.LogError(e, "{worker} error in ExecuteAsync", nameof(MainService));
                 }
             }
             finally
             {
-                logger.LogInformation("{worker} is stopping.", nameof(GenericWorkerService));
+                logger.LogInformation("{worker} is stopping.", nameof(MainService));
             }
         }
 
@@ -135,7 +135,7 @@ namespace GenericWorkerService.BusinessLayer.Services
         {
             if (genericWorkerSetting.WaitBeforeStart > 0)
             {
-                logger.LogInformation("{worker} initial delay of {WaitBeforeStart} seconds.", nameof(GenericWorkerService),
+                logger.LogInformation("{worker} initial delay of {WaitBeforeStart} seconds.", nameof(MainService),
                     genericWorkerSetting.WaitBeforeStart / 1000);
                 await Task.Delay(genericWorkerSetting.WaitBeforeStart, cancellationToken);
             }

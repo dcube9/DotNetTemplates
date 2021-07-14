@@ -17,12 +17,12 @@ namespace GenericWorkerService
 
         public void ConfigureServices(IServiceCollection services)
         {
-            var settings = Configure<AppSettings>(nameof(AppSettings));
+            var appSettings = Configure<AppSettings>(nameof(AppSettings));
 
-            services.AddGenericWorkerServices(
-                (ref GenericWorkerSettings options) =>
+            services.AddGenericService(
+                (ref MainServiceSettings options) =>
                 {
-                    options = settings.GenericWorker.Clone() as GenericWorkerSettings;
+                    options = appSettings.MainService.Clone() as MainServiceSettings;
                 });
 
             T Configure<T>(string sectionName) where T : class

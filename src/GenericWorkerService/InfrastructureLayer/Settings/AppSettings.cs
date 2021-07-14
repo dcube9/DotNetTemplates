@@ -4,6 +4,6 @@ namespace GenericWorkerService.InfrastructureLayer.Settings
 {
     public class AppSettings
     {
-        public GenericWorkerSettings GenericWorker { get; set; } = new();
+        public MainServiceSettings MainService { get; set; } = new();
     }
 }

@@ -7,16 +7,16 @@ namespace GenericWorkerService.BusinessLayer.Extentions
     public delegate void ActionRef<T>(ref T item);
     public delegate void ActionOut<T>(out T item);
 
-    public static class GenericWorkerServiceExtensions
+    public static class MainServiceExtensions
     {
-        public static IServiceCollection AddGenericWorkerServices(this IServiceCollection services, ActionRef<GenericWorkerSettings> configure)
+        public static IServiceCollection AddGenericService(this IServiceCollection services, ActionRef<MainServiceSettings> configure)
         {
-            GenericWorkerSettings settings = new();
+            MainServiceSettings settings = new();
             configure?.Invoke(ref settings);
             services.AddSingleton(settings);
 
             services.AddScoped<IHarvestService, HarvestService>();
-            services.AddHostedService<BusinessLayer.Services.GenericWorkerService>();
+            services.AddHostedService<BusinessLayer.Services.MainService>();
 
             return services;
         }

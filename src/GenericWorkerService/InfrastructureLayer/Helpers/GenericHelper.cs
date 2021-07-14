@@ -1,12 +1,13 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 
 namespace GenericWorkerService.InfrastructureLayer.Helpers
 {
-    public class GenericHelper
+    public class AssemblyHelpers
     {
-        public static string ExecutingAssemblyFolder
+        public static string ExecutingFolder
         {
             get
             {
@@ -15,6 +16,13 @@ namespace GenericWorkerService.InfrastructureLayer.Helpers
                 var path = Uri.UnescapeDataString(uri.Path);
                 return Path.GetDirectoryName(path);
             }
+        }
+
+        public static string AssemblyVersion()
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
+            return string.IsNullOrEmpty(fvi.FileVersion) ? "" : fvi.FileVersion;
         }
     }
 }
